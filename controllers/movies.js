@@ -3,11 +3,13 @@ const {commonQuery} = require('../db');
 async function addMovie(req,res) {
     try{
         const {name, description, director, duration, price} = req.body;
-        if(!name && !description && !duration && !price) {
+        const duplicationCheck = await commonQuery(`SELECT id FROM mydb.movies WHERE name = "${name}"`);
+        if(!name && !description && !duration && !price || (duplicationCheck.length || price<0)) {
             res.status(422).json({
-                message: 'Please enter all the required fields',
+                message: 'Please enter all the required fields or the movie already exists',
                 success: 'false',
             })
+            return;
         }
         const INSERT_QUERY = `INSERT INTO mydb.Movies SET ?;`;
         await commonQuery(INSERT_QUERY,{
@@ -39,6 +41,7 @@ async function addTimings(req,res) {
                 message: 'Please enter movie name',
                 success: 'false',
             })
+            return;
         }
         const result = await commonQuery(`SELECT id FROM mydb.movies WHERE name = "${movieName}";`);
         if(!result.length){
@@ -84,6 +87,7 @@ async function purchaseTicket(req,res) {
                 message: 'Please enter movie name',
                 success: 'false',
             })
+            return;
         }
         const result = await commonQuery(`SELECT id FROM mydb.movies WHERE name = "${movieName}";`);
         if(!result.length){
